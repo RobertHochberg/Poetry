@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 
 class WordPlay {
 
@@ -15,7 +16,8 @@ class WordPlay {
     //pregrams();
     // writeGreatLimerickParallel();
     //rhyme("trails", "1]");
-    filterWords();
+    //filterWords();
+    soundsLike("IH hard");
   }
 
   // Generic function to loop over and select words
@@ -118,6 +120,39 @@ class WordPlay {
     fw.sort((w1, w2) -> w1.rhymeReverese().compareTo(w2.rhymeReverese()));
     for (Word s : fw) {
       System.out.println(s.word);
+    }
+  }
+
+
+  // patt should be something like "IH soft" or "AY hard"
+  static void soundsLike(String patt){
+    String[] hard = {"F", "K", "P", "S", "T"};
+    String[] medium = {"B", "D", "G", "J", "L", "M", "N", "R", "V", "W", "Z"};
+
+    String[] inputs = patt.trim().split(" ");
+    String v = inputs[0];   // vowel sound
+    String end = inputs[1]; // hard or soft
+    
+    for(Word w : p.Words){
+      int n = w.phonemes.size();
+      if(n < 2) continue;
+      
+      String last = w.phonemes.get(0);
+      String penu = w.phonemes.get(1);
+    
+      // Check to see if we end with the right type of consonant
+      int endMatches = 0;
+      if(end.equals("hard")){
+        endMatches = Arrays.binarySearch(hard, last);
+      } else {
+        endMatches = Arrays.binarySearch(medium, last);
+      }
+      if(endMatches < 0) continue;
+
+      // Now check the penultimate vowel sound
+      if(!penu.equals(v)) continue;
+
+      System.out.println(w.word);
     }
   }
 
