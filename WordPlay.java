@@ -1,5 +1,9 @@
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Scanner;
 
 class WordPlay {
 
@@ -12,12 +16,138 @@ class WordPlay {
 
   public static void main(String[] args) {
     p = new Poet("Texts/flist.txt");
+    //p = new Poet("Texts/JaneAusten.txt");
     //stress("[0, 1", "c");
     //pregrams();
     // writeGreatLimerickParallel();
     //rhyme("trails", "1]");
     //filterWords();
-    soundsLike("IH hard");
+    //soundsLike("IH hard");
+    HashSet<String> avoid = new HashSet<>();
+    //avoid.add("fried");
+    avoid.add("crack");
+    avoid.add("peeling");
+    avoid.add("burrs");
+    avoid.add("burr");
+    Scanner s = new Scanner(System.in);
+    while(true){
+      String start = s.next().trim();
+      String end = s.next().trim();
+      avoid.add(s.next().trim());
+      wordLadder(start, end, 40, avoid);
+    }
+  }
+
+  // Build a ladder from start to end, changing one letter at a time
+  static ArrayList<Word> wordLadder(String start, String end, int scowl, HashSet<String> avoid){
+    int min = start.length();
+    int max = start.length();
+    if(end.length() < min) min = end.length();
+    if(end.length() > max) max = end.length();
+    min--; max++; 
+    HashMap<Word, ArrayList<Word>> g = buildWordGraph(min, max, scowl, avoid);
+
+    if(!p.wordMap.containsKey(start)){
+      System.out.println("Unstartable.");
+      return null;
+    }
+
+    Word s = p.wordMap.get(start);
+    LinkedList<Word> q = new LinkedList<>();
+    HashMap<Word, Integer> distance = new HashMap<>();
+    HashMap<Word, ArrayList<Word>> parent = new HashMap<>();
+
+    q.add(s); // Put the start word on the queue
+    parent.put(s, null);
+    distance.put(s, 0);
+
+    foundpath:
+    while(q.size() > 0){
+      Word w = q.pop();
+      System.out.print(w.word + ", ");
+      if(!g.containsKey(w)) continue;
+      int d = distance.get(w);
+      for(Word nbr : g.get(w)){
+        if(parent.containsKey(nbr) && distance.get(nbr) <= d) continue;
+        if(!parent.containsKey(nbr)){
+          parent.put(nbr, new ArrayList<>());
+          q.add(nbr);
+          distance.put(nbr, d+1);
+        }
+        parent.get(nbr).add(w);
+        if(nbr.word.equals(end)) break foundpath;
+      }
+    }
+
+    // Now print the path
+    if(!parent.containsKey(p.wordMap.get(end))){
+      System.out.println("Unreachable.");
+      return null;
+    }
+    System.out.println("");
+    printAllPaths(p.wordMap.get(end), parent, end + " ");
+    return null;
+  }
+
+  // Print all the shortest paths
+  static void printAllPaths(Word end, HashMap<Word, ArrayList<Word>> parents, String root){
+    // base case
+    if(parents.get(end) == null){
+      System.out.println(root);
+      return;
+    }
+
+    // Try all neighbors
+    for(Word p : parents.get(end)){
+      String newRoot = p.word + " " + root;
+      printAllPaths(p, parents, newRoot);
+    }
+  }
+
+  // Build a graph (map of lists) from the poet
+  static HashMap<Word, ArrayList<Word>> buildWordGraph(int min, int max, int scowl,
+  HashSet<String> avoid){
+    HashMap<Word, ArrayList<Word>> g = new HashMap<Word, ArrayList<Word>>();
+
+    for(Word w : p.Words){
+      w = p.wordMap.get(w.word);
+      if(g.containsKey(w)) continue;
+      if(avoid.contains(w.word)) continue;
+      int wl = w.word.length();
+      if(wl < min || wl > max) continue;
+      if(w.getScowlValue() > scowl) continue;
+
+      if(!g.containsKey(w)) g.put(w, new ArrayList<Word>());
+
+      // Connect to words of the same length
+      String word = w.word;
+      for(int i = 0; i < wl; i++){
+        for(char c = 'a'; c <= 'z'; c++){
+          String neww = word.substring(0, i) + c + word.substring(i+1);
+          if(neww.equals(word)) continue;
+          if(!p.wordMap.containsKey(neww)) continue;
+          Word newW = p.wordMap.get(neww);
+          if(newW.getScowlValue() > scowl || newW.getScowlValue() < 1) continue;
+
+          g.get(w).add(newW);
+        }
+      }
+
+      // Connect to words that are one shorter, if possible
+      if(wl > min){
+        for(int i = 0; i < wl; i++){
+          String neww = word.substring(0, i) + word.substring(i+1);
+          if(!p.wordMap.containsKey(neww)) continue;
+          if(avoid.contains(neww)) continue;
+          Word newW = p.wordMap.get(neww);
+          if(newW.getScowlValue() > scowl || newW.getScowlValue() < 1) continue;
+          g.get(w).add(newW);
+          if(!g.containsKey(newW)) g.put(newW, new ArrayList<Word>());
+          g.get(newW).add(w);
+        }
+      }
+    }
+    return g;
   }
 
   // Generic function to loop over and select words
@@ -125,13 +255,14 @@ class WordPlay {
 
 
   // patt should be something like "IH soft" or "AY hard"
-  static void soundsLike(String patt){
+  static void soundsLike(String patt, String stresses){
     String[] hard = {"F", "K", "P", "S", "T"};
     String[] medium = {"B", "D", "G", "J", "L", "M", "N", "R", "V", "W", "Z"};
 
     String[] inputs = patt.trim().split(" ");
-    String v = inputs[0];   // vowel sound
-    String end = inputs[1]; // hard or soft
+    String v, end;
+    v = inputs[0];   // vowel sound
+    end = inputs[1]; // hard or soft
     
     for(Word w : p.Words){
       int n = w.phonemes.size();
@@ -152,6 +283,10 @@ class WordPlay {
       // Now check the penultimate vowel sound
       if(!penu.equals(v)) continue;
 
+      // Check if we match the stresses
+      if (stresses.length() > 0 && !w.stresses.toString().contains(stresses)){
+        continue;
+      }
       System.out.println(w.word);
     }
   }
