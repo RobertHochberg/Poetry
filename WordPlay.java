@@ -29,14 +29,56 @@ class WordPlay {
     avoid.add("peeling");
     avoid.add("burrs");
     avoid.add("burr");
-    Scanner s = new Scanner(System.in);
+    /*Scanner s = new Scanner(System.in);
     while(true){
       String start = s.next().trim();
       String end = s.next().trim();
       avoid.add(s.next().trim());
       wordLadder(start, end, 40, avoid);
+    }*/
+    findDeletionTriples();
+  }
+
+  // Find triples of words (A, B, C) where B is a one-letter deletion from A,
+  // and C is a one-letter deletion from B
+  // happiness  length = 9
+  // 012345678 
+  static void findDeletionTriples(){
+    DSArrayList<Word> words = p.Words;
+
+    DSArrayList<String> theList = new DSArrayList<>();
+    for (Word w : words) {
+      if(w.word.length() < 4 || w.word.length() > 17) continue;
+      for(int i = 0; i < w.word.length(); i++){
+        String pruned = w.word.substring(0, i) + w.word.substring(i+1);
+        if (p.wordMap.containsKey(pruned)) {
+          Word pw = p.wordMap.get(pruned);
+          for(int j = 0; j < pruned.length(); j++){
+            String pruned2 = pw.word.substring(0, j) + pw.word.substring(j+1);
+            if (p.wordMap.containsKey(pruned2)) {
+              Word pw2 = p.wordMap.get(pruned2);
+              if (
+                w.stresses.size() > 0 &&
+                pw.stresses.size() > 0 &&
+                pw2.stresses.size() > 0 &&
+                w.word.length() >= 3 &&
+                !w.rhymesWith(pw) && w.rhymesWith(pw2)
+              ) {
+                String s = String.format("%s, %s, %s", w.word, pruned, pruned2);
+                theList.add(s);
+              }
+            }
+          }
+        }
+      }
+    }
+    theList.sort();
+    for (String s : theList) {
+      System.out.println(s);
     }
   }
+
+
 
   // Build a ladder from start to end, changing one letter at a time
   static ArrayList<Word> wordLadder(String start, String end, int scowl, HashSet<String> avoid){
