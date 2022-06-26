@@ -15,20 +15,20 @@ class WordPlay {
   static Poet p;
 
   public static void main(String[] args) {
+    //p = new Poet("Texts/flist.txt");
     p = new Poet("Texts/flist.txt");
-    //p = new Poet("Texts/JaneAusten.txt");
     //stress("[0, 1", "c");
     //pregrams();
     // writeGreatLimerickParallel();
     //rhyme("trails", "1]");
     //filterWords();
     //soundsLike("IH hard");
-    HashSet<String> avoid = new HashSet<>();
-    //avoid.add("fried");
+    /*HashSet<String> avoid = new HashSet<>();
+    avoid.add("fried");
     avoid.add("crack");
     avoid.add("peeling");
     avoid.add("burrs");
-    avoid.add("burr");
+    avoid.add("burr");*/
     /*Scanner s = new Scanner(System.in);
     while(true){
       String start = s.next().trim();
@@ -36,7 +36,124 @@ class WordPlay {
       avoid.add(s.next().trim());
       wordLadder(start, end, 40, avoid);
     }*/
-    findDeletionTriples();
+    //findDeletionTriples();
+    startsWith("mor");
+    //containsInside("ri");
+    //endsWith("r");
+  }
+
+
+
+  // Look for words that start with s, and which are also words when s is removed
+  static void findSwapPairs() {
+    DSArrayList<Word> words = p.Words;
+    int scowlThresh = 50;
+    int suffixMin = 1;
+    int suffixMax = 3;
+    int prefixMin = 1;
+    int prefixMax = 3;
+
+    DSArrayList<String> theList = new DSArrayList<>();
+    for (Word w : words) {
+      
+      if(w.word.length() < 5) continue;
+      if(!w.word.substring(0, prefix.length()).equals(prefix)) continue;
+      String pruned = w.word.substring(prefix.length());
+      if (p.wordMap.containsKey(pruned)) {
+        Word pw = p.wordMap.get(pruned);
+        if (
+          w.getScowlValue() <= scowlThresh && pw.getScowlValue() <= scowlThresh
+        ) {
+          String s = String.format("%s --> %s", w.word, pruned);
+          theList.add(s);
+        }
+      }
+    }
+    theList.sort();
+    for (String s : theList) {
+      System.out.println(s);
+    }
+  }
+
+  // Look for words that start with s, and which are also words when s is removed
+  static void startsWith(String prefix) {
+    DSArrayList<Word> words = p.Words;
+    int scowlThresh = 50;
+
+    DSArrayList<String> theList = new DSArrayList<>();
+    for (Word w : words) {
+      if(w.word.length() < 5) continue;
+      if(!w.word.substring(0, prefix.length()).equals(prefix)) continue;
+      String pruned = w.word.substring(prefix.length());
+      if (p.wordMap.containsKey(pruned)) {
+        Word pw = p.wordMap.get(pruned);
+        if (
+          w.getScowlValue() <= scowlThresh && pw.getScowlValue() <= scowlThresh
+        ) {
+          String s = String.format("%s --> %s", w.word, pruned);
+          theList.add(s);
+        }
+      }
+    }
+    theList.sort();
+    for (String s : theList) {
+      System.out.println(s);
+    }
+  }
+
+  // Look for words that end with suffix, 
+  // and which are also words when suffix is removed
+  static void endsWith(String suffix) {
+    DSArrayList<Word> words = p.Words;
+    int scowlThresh = 50;
+
+    DSArrayList<String> theList = new DSArrayList<>();
+    for (Word w : words) {
+      if(w.word.length() < 5) continue;
+      if(!w.word.substring(w.word.length() - suffix.length()).equals(suffix)) continue;
+      String pruned = w.word.substring(0, w.word.length() - suffix.length());
+      if (p.wordMap.containsKey(pruned)) {
+        Word pw = p.wordMap.get(pruned);
+        if (
+          w.getScowlValue() <= scowlThresh && pw.getScowlValue() <= scowlThresh
+        ) {
+          String s = String.format("%s --> %s", w.word, pruned);
+          theList.add(s);
+        }
+      }
+    }
+    theList.sort();
+    for (String s : theList) {
+      System.out.println(s);
+    }
+  }
+
+  // Look for words that contain s as a substring, 
+  // and which are also words when s is removed
+  static void containsInside(String infix) {
+    DSArrayList<Word> words = p.Words;
+    int scowlThresh = 50;
+
+    DSArrayList<String> theList = new DSArrayList<>();
+    for (Word w : words) {
+      if(w.word.length() < 5) continue;
+      int location = w.word.indexOf(infix);
+      if(location < 0) continue;
+      String pruned = w.word.substring(0, location) + w.word.substring(location+infix.length());
+      if (p.wordMap.containsKey(pruned)) {
+        Word pw = p.wordMap.get(pruned);
+        if (
+          w.getScowlValue() <= scowlThresh && pw.getScowlValue() <= scowlThresh
+        ) {
+          String s = String.format("%s --> %s", w.word, pruned);
+          theList.add(s);
+        }
+      }
+    }
+    theList.sort();
+    for (String s : theList) {
+      System.out.println(s);
+    }
   }
 
   // Find triples of words (A, B, C) where B is a one-letter deletion from A,
@@ -200,9 +317,10 @@ class WordPlay {
 
     for (Word w : words) {
       //if (w.getScowlValue() == 0 || w.getScowlValue() > 60) continue; // less common words
-      //if(w.stresses.size() < 2) continue;
-      //if(! w.stresses.toString().equals("[0, 1, 0]")) continue;
-      if (w.word.contains("e") || w.word.contains("i") || w.word.contains("u") || w.word.contains("o") || w.word.contains("a")) continue;
+      //if(w.stresses.size() != 3) continue;
+      if(! w.stresses.toString().equals("[1, 0, 0]")) continue;
+      if(w.word.charAt(0) != 'c') continue;
+      //if (w.word.contains("e") || w.word.contains("i") || w.word.contains("u") || w.word.contains("o") || w.word.contains("a")) continue;
       //if (w.word.contains("e") || w.word.contains("u")) continue;
       
       //if(w.phonemes.size() < 3) continue;
