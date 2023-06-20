@@ -305,7 +305,7 @@ class Poet {
     } catch (IOException x) {
       System.err.format("IOException: %s\n", x);
     }
-    System.out.println("Done.");
+    System.out.println("Done reading scowl values.");
   }
 
   /**

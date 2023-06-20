@@ -15,37 +15,40 @@ class WordPlay {
   static Poet p;
 
   public static void main(String[] args) {
-    //p = new Poet("Texts/flist.txt");
     p = new Poet("Texts/flist.txt");
+    //p = new Poet("Texts/TaylorSwiftLyrics.txt");
+    System.out.println("Created Poet");
+    //printReversibleWords();
     //stress("[0, 1", "c");
     //pregrams();
     // writeGreatLimerickParallel();
-    //rhyme("trails", "1]");
+    rhyme("barrage", "1]");
     //filterWords();
     //soundsLike("IH hard");
-    /*HashSet<String> avoid = new HashSet<>();
-    avoid.add("fried");
-    avoid.add("crack");
-    avoid.add("peeling");
-    avoid.add("burrs");
-    avoid.add("burr");*/
-    /*Scanner s = new Scanner(System.in);
+    //HashSet<String> avoid = new HashSet<>();
+    //avoid.add("fried");
+    /*
+    Scanner s = new Scanner(System.in);
     while(true){
       String start = s.next().trim();
       String end = s.next().trim();
-      avoid.add(s.next().trim());
-      wordLadder(start, end, 40, avoid);
+      //avoid.add(s.next().trim());
+      wordLadder(start, end, 80, avoid);
     }*/
     //findDeletionTriples();
-    startsWith("mor");
+    //startsWith("mor");
     //containsInside("ri");
     //endsWith("r");
   }
 
 
+  private static void printReversibleWords() {
+  }
+  
+
 
   // Look for words that start with s, and which are also words when s is removed
-  static void findSwapPairs() {
+  static void findSwapPairs(String prefix) {
     DSArrayList<Word> words = p.Words;
     int scowlThresh = 50;
     int suffixMin = 1;
@@ -223,7 +226,7 @@ class WordPlay {
     foundpath:
     while(q.size() > 0){
       Word w = q.pop();
-      System.out.print(w.word + ", ");
+      //System.out.print(w.word + ", ");
       if(!g.containsKey(w)) continue;
       int d = distance.get(w);
       for(Word nbr : g.get(w)){
@@ -234,17 +237,18 @@ class WordPlay {
           distance.put(nbr, d+1);
         }
         parent.get(nbr).add(w);
-        if(nbr.word.equals(end)) break foundpath;
+        //if(nbr.word.equals(end)) break foundpath;
       }
     }
 
     // Now print the path
     if(!parent.containsKey(p.wordMap.get(end))){
       System.out.println("Unreachable.");
-      return null;
+      //return null;
     }
     System.out.println("");
     printAllPaths(p.wordMap.get(end), parent, end + " ");
+    countAllPaths(p.wordMap.get(end), parent);
     return null;
   }
 
@@ -261,6 +265,42 @@ class WordPlay {
       String newRoot = p.word + " " + root;
       printAllPaths(p, parents, newRoot);
     }
+  }
+
+  // Print all the shortest paths
+  static void countAllPaths(Word end, HashMap<Word, ArrayList<Word>> parents){
+    HashMap<Word, Integer> numPaths = new HashMap<>();
+    int maxNumPaths = 0;
+    Word maxWord = null;
+    
+    for(Word w : parents.keySet()){
+      int d = getPathCount(w, parents, numPaths);
+      if(d > maxNumPaths){
+        System.out.printf("Word %s has %d paths\n", w.word, d);
+        maxNumPaths = d;
+        maxWord = w;
+      }
+    }
+
+    System.out.printf("Word %s has %d many paths\n", maxWord.word, maxNumPaths);
+  }
+
+  // Recursively find number of paths
+  static int getPathCount(Word w, HashMap<Word, ArrayList<Word>> parents, HashMap<Word, Integer> numPaths){
+    // base case
+    if(parents.get(w) == null){
+      return 1;
+    }
+
+    if(numPaths.containsKey(w)) return numPaths.get(w);
+
+    // Try all neighbors
+    int count = 0;
+    for(Word p : parents.get(w)){
+      count += getPathCount(p, parents, numPaths);      
+    }
+    numPaths.put(w, count);
+    return count;
   }
 
   // Build a graph (map of lists) from the poet
@@ -291,9 +331,9 @@ class WordPlay {
           g.get(w).add(newW);
         }
       }
-
+      
       // Connect to words that are one shorter, if possible
-      if(wl > min){
+      if(false && wl > min){
         for(int i = 0; i < wl; i++){
           String neww = word.substring(0, i) + word.substring(i+1);
           if(!p.wordMap.containsKey(neww)) continue;
@@ -390,7 +430,7 @@ class WordPlay {
     ArrayList<Word> fw = new ArrayList<>();
 
     for (Word w : words) {
-      if (w.word.contains("e") || w.word.contains("i") || w.word.contains("u") || w.word.contains("o")) continue;
+      //if (w.word.contains("e") || w.word.contains("i") || w.word.contains("u") || w.word.contains("o")) continue;
       //if(w.word.length() < 5) continue;
       String s = w.stresses.toString();
       s.replaceAll("2", "1");
@@ -408,8 +448,8 @@ class WordPlay {
     }
     theList.sort();
     fw.sort((w1, w2) -> w1.rhymeReverese().compareTo(w2.rhymeReverese()));
-    for (Word s : fw) {
-      System.out.println(s.word);
+    for (String s : theList) {
+      System.out.println(s);
     }
   }
 
